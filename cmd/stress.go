@@ -26,8 +26,8 @@ var stressCmd = &cobra.Command{
 		}
 
 		//global configs
-		stressCfg.NoHTTP2 = viper.GetBool("noHTTP2")
-		stressCfg.EnforceSSL = viper.GetBool("enforceSSL")
+		stressCfg.NoHTTP2 = viper.GetBool("no-http2")
+		stressCfg.EnforceSSL = viper.GetBool("enforce-ssl")
 		stressCfg.Quiet = viper.GetBool("quiet")
 		stressCfg.Verbose = viper.GetBool("verbose")
 
@@ -49,16 +49,16 @@ var stressCmd = &cobra.Command{
 				stressCfg.Targets[i].Count = viper.GetInt("count")
 				stressCfg.Targets[i].Concurrency = viper.GetInt("concurrency")
 				stressCfg.Targets[i].Timeout = viper.GetString("timeout")
-				stressCfg.Targets[i].Method = viper.GetString("method")
+				stressCfg.Targets[i].Method = viper.GetString("request-method")
 				stressCfg.Targets[i].Body = viper.GetString("body")
-				stressCfg.Targets[i].BodyFilename = viper.GetString("bodyFile")
+				stressCfg.Targets[i].BodyFilename = viper.GetString("body-file")
 				stressCfg.Targets[i].Headers = viper.GetString("headers")
 				stressCfg.Targets[i].Cookies = viper.GetString("cookies")
-				stressCfg.Targets[i].UserAgent = viper.GetString("userAgent")
-				stressCfg.Targets[i].BasicAuth = viper.GetString("basicAuth")
+				stressCfg.Targets[i].UserAgent = viper.GetString("user-agent")
+				stressCfg.Targets[i].BasicAuth = viper.GetString("basic-auth")
 				stressCfg.Targets[i].Compress = viper.GetBool("compress")
 				stressCfg.Targets[i].KeepAlive = viper.GetBool("keepalive")
-				stressCfg.Targets[i].FollowRedirects = viper.GetBool("followredirects")
+				stressCfg.Targets[i].FollowRedirects = viper.GetBool("follow-redirects")
 			}
 		} else {
 			//set non-URL target settings
@@ -143,22 +143,24 @@ var stressCmd = &cobra.Command{
 
 		//write out json
 		if viper.GetString("ResultFilenameJSON") != "" {
-			fmt.Print("Writing full result data to: " + viper.GetString("ResultFilenameJSON") + " ...")
+			filename := viper.GetString("output-json")
+			fmt.Print("Writing full result data to: " + filename + " ...")
 			json, _ := json.MarshalIndent(globalStats, "", "    ")
-			err = ioutil.WriteFile(viper.GetString("ResultFilenameJSON"), json, 0644)
+			err = ioutil.WriteFile(filename, json, 0644)
 			if err != nil {
 				return errors.New("failed to write full result data to " +
-					viper.GetString("ResultFilenameJSON") + ": " + err.Error())
+					filename + ": " + err.Error())
 			}
 			fmt.Println("finished!")
 		}
 		//write out csv
 		if viper.GetString("ResultFilenameCSV") != "" {
-			fmt.Print("Writing full result data to: " + viper.GetString("ResultFilenameCSV") + " ...")
-			file, err := os.Create(viper.GetString("ResultFilenameCSV"))
+			filename := viper.GetString("ResultFilenameCSV")
+			fmt.Print("Writing full result data to: " + filename + " ...")
+			file, err := os.Create(filename)
 			if err != nil {
 				return errors.New("failed to write full result data to " +
-					viper.GetString("ResultFilenameCSV") + ": " + err.Error())
+					filename + ": " + err.Error())
 			}
 			defer file.Close()
 
@@ -186,64 +188,9 @@ var stressCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(stressCmd)
-	stressCmd.Flags().BoolP("regex", "r", false, "Interpret URLs as regular expressions.")
-	viper.BindPFlag("regex", stressCmd.Flags().Lookup("regex"))
-
 	stressCmd.Flags().IntP("num", "n", 10, "Number of total requests to make.")
 	viper.BindPFlag("count", stressCmd.Flags().Lookup("num"))
 
 	stressCmd.Flags().IntP("concurrent", "c", 1, "Number of concurrent requests to make.")
 	viper.BindPFlag("concurrency", stressCmd.Flags().Lookup("concurrent"))
-
-	stressCmd.Flags().StringP("timeout", "t", "10s", "Maximum seconds to wait for response")
-	viper.BindPFlag("timeout", stressCmd.Flags().Lookup("timeout"))
-
-	stressCmd.Flags().StringP("request-method", "X", "GET", "Request type. GET, HEAD, POST, PUT, etc.")
-	viper.BindPFlag("method", stressCmd.Flags().Lookup("request-method"))
-
-	stressCmd.Flags().String("body", "", "String to use as request body e.g. POST body.")
-	viper.BindPFlag("body", stressCmd.Flags().Lookup("body"))
-
-	stressCmd.Flags().String("body-file", "", "Path to file to use as request body. Will overwrite --body if both are present.")
-	viper.BindPFlag("bodyFile", stressCmd.Flags().Lookup("body-file"))
-
-	stressCmd.Flags().StringP("headers", "H", "", "Add arbitrary header line, eg. 'Accept-Encoding:gzip, Content-Type:application/json'")
-	viper.BindPFlag("headers", stressCmd.Flags().Lookup("headers"))
-
-	stressCmd.Flags().String("cookies", "", "Add request cookies, eg. 'data=123; session=456'")
-	viper.BindPFlag("cookies", stressCmd.Flags().Lookup("cookies"))
-
-	stressCmd.Flags().StringP("user-agent", "A", "pewpew", "Add User-Agent header. Can also be done with the arbitrary header flag.")
-	viper.BindPFlag("userAgent", stressCmd.Flags().Lookup("user-agent"))
-
-	stressCmd.Flags().String("basic-auth", "", "Add HTTP basic authentication, eg. 'user123:password456'.")
-	viper.BindPFlag("basicAuth", stressCmd.Flags().Lookup("basic-auth"))
-
-	stressCmd.Flags().BoolP("compress", "C", true, "Add 'Accept-Encoding: gzip' header if Accept-Encoding is not already present.")
-	viper.BindPFlag("compress", stressCmd.Flags().Lookup("compress"))
-
-	stressCmd.Flags().BoolP("keepalive", "k", true, "Enable HTTP KeepAlive.")
-	viper.BindPFlag("keepalive", stressCmd.Flags().Lookup("keepalive"))
-
-	stressCmd.Flags().Bool("follow-redirects", true, "Follow HTTP redirects.")
-	viper.BindPFlag("followredirects", stressCmd.Flags().Lookup("follow-redirects"))
-
-	stressCmd.Flags().Bool("no-http2", false, "Disable HTTP2.")
-	viper.BindPFlag("noHTTP2", stressCmd.Flags().Lookup("no-http2"))
-
-	stressCmd.Flags().Bool("ignore-ssl", false, "Enfore SSL certificate/hostname correctness.")
-	viper.BindPFlag("enforceSSL", stressCmd.Flags().Lookup("ignore-ssl"))
-
-	stressCmd.Flags().String("output-json", "", "Path to file to write full data as JSON")
-	viper.BindPFlag("ResultFilenameJSON", stressCmd.Flags().Lookup("output-json"))
-
-	stressCmd.Flags().String("output-csv", "", "Path to file to write full data as CSV")
-	viper.BindPFlag("ResultFilenameCSV", stressCmd.Flags().Lookup("output-csv"))
-
-	stressCmd.Flags().BoolP("quiet", "q", false, "Do not print while requests are running.")
-	viper.BindPFlag("quiet", stressCmd.Flags().Lookup("quiet"))
-
-	stressCmd.Flags().BoolP("verbose", "v", false, "Print extra info for debugging.")
-	viper.BindPFlag("verbose", stressCmd.Flags().Lookup("verbose"))
-
 }
