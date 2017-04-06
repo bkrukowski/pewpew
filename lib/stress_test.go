@@ -34,23 +34,23 @@ func TestRunStress(t *testing.T) {
 		writer       io.Writer
 		hasErr       bool
 	}{
-		{StressConfig{}, ioutil.Discard, true},                                                                                         //invalid config
-		{StressConfig{}, nil, true},                                                                                                    //empty writer
-		{StressConfig{Targets: []Target{{}}}, ioutil.Discard, true},                                                                    //invalid target
-		{StressConfig{Targets: []Target{{URL: "*(", RegexURL: true, Method: "GET", Count: 10, Concurrency: 1}}}, ioutil.Discard, true}, //error building target, invalid regex
-		{StressConfig{Targets: []Target{{URL: ":::fail", Method: "GET", Count: 10, Concurrency: 1}}}, ioutil.Discard, true},            //error building target
+		{StressConfig{}, ioutil.Discard, true},                                                                                                                     //invalid config
+		{StressConfig{}, nil, true},                                                                                                                                //empty writer
+		{StressConfig{StressTargets: []StressTarget{{}}}, ioutil.Discard, true},                                                                                    //invalid target
+		{StressConfig{StressTargets: []StressTarget{{Count: 10, Concurrency: 1, Target: Target{URL: "*(", RegexURL: true, Method: "GET"}}}}, ioutil.Discard, true}, //error building target, invalid regex
+		{StressConfig{StressTargets: []StressTarget{{Count: 10, Concurrency: 1, Target: Target{URL: ":::fail", Method: "GET"}}}}, ioutil.Discard, true},            //error building target
 
 		//good cases
-		{StressConfig{Targets: []Target{{URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}, {URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}}}, ioutil.Discard, false}, //multiple targets
-		{StressConfig{Targets: []Target{{URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}}}, ioutil.Discard, false},                                                                     //single target
-		{StressConfig{Targets: []Target{{URL: "http://localhost:999999999", Method: "GET", Count: 1, Concurrency: 1}}}, ioutil.Discard, false},                                                           //request that should cause an http err that will get handled
-		{StressConfig{Targets: []Target{{URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}}, NoHTTP2: true}, ioutil.Discard, false},                                                      //noHTTP
-		{StressConfig{Targets: []Target{{URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}}, Timeout: "2s"}, ioutil.Discard, false},                                                      //timeout
-		{StressConfig{Targets: []Target{{URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}}, FollowRedirects: true}, ioutil.Discard, false},                                              //follow redirects
-		{StressConfig{Targets: []Target{{URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}}, FollowRedirects: false}, ioutil.Discard, false},                                             //don't follow redirects
-		{StressConfig{Targets: []Target{{URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}}, Verbose: true}, ioutil.Discard, false},                                                      //verbose
-		{StressConfig{Targets: []Target{{URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}}, Quiet: true}, ioutil.Discard, false},                                                        //quiet
-		{StressConfig{Targets: []Target{{URL: "http://localhost", Method: "GET", Count: 1, Concurrency: 1}}, BodyFilename: tempFilename}, ioutil.Discard, false},                                         //body file
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}, {Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}}}, ioutil.Discard, false}, //multiple targets
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}}}, ioutil.Discard, false},                                                                                     //single target
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost:999999999", Method: "GET"}}}}, ioutil.Discard, false},                                                                           //request that should cause an http err that will get handled
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}}, NoHTTP2: true}, ioutil.Discard, false},                                                                      //noHTTP
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}}, Timeout: "2s"}, ioutil.Discard, false},                                                                      //timeout
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}}, FollowRedirects: true}, ioutil.Discard, false},                                                              //follow redirects
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}}, FollowRedirects: false}, ioutil.Discard, false},                                                             //don't follow redirects
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}}, Verbose: true}, ioutil.Discard, false},                                                                      //verbose
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}}, Quiet: true}, ioutil.Discard, false},                                                                        //quiet
+		{StressConfig{StressTargets: []StressTarget{{Count: 1, Concurrency: 1, Target: Target{URL: "http://localhost", Method: "GET"}}}, BodyFilename: tempFilename}, ioutil.Discard, false},                                                         //body file
 		{*NewStressConfig(), ioutil.Discard, false},
 	}
 	for _, c := range cases {

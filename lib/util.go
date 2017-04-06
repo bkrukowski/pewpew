@@ -14,37 +14,31 @@ import (
 	http2 "golang.org/x/net/http2"
 )
 
-func validateTargets(s StressConfig) error {
-	if len(s.Targets) == 0 {
+func validateStressConfig(s StressConfig) error {
+	if len(s.StressTargets) == 0 {
 		return errors.New("zero targets")
 	}
-	for _, target := range s.Targets {
-		//checks
-		if target.URL == "" {
-			return errors.New("empty URL")
+	for _, stressTarget := range s.StressTargets {
+		if err := validateStressTarget(stressTarget); err != nil {
+			return err
 		}
-		if target.Count <= 0 {
-			return errors.New("request count must be greater than zero")
-		}
-		if target.Concurrency <= 0 {
-			return errors.New("concurrency must be greater than zero")
-		}
-		if target.Method == "" {
-			return errors.New("method cannot be empty string")
-		}
-		if target.Timeout != "" {
-			//TODO should save this parsed duration so don't have to inefficiently reparse later
-			timeout, err := time.ParseDuration(target.Timeout)
-			if err != nil {
-				return errors.New("failed to parse timeout: " + target.Timeout)
-			}
-			if timeout <= time.Millisecond {
-				return errors.New("timeout must be greater than one millisecond")
-			}
-		}
-		if target.Concurrency > target.Count {
-			return errors.New("concurrency must be higher than request count")
-		}
+	}
+	return nil
+}
+
+func validateStressTarget(stressTarget StressTarget) error {
+	if stressTarget.Count <= 0 {
+		return errors.New("request count must be greater than zero")
+	}
+	if stressTarget.Concurrency <= 0 {
+		return errors.New("concurrency must be greater than zero")
+	}
+	if stressTarget.Concurrency > stressTarget.Count {
+		return errors.New("concurrency must be higher than request count")
+	}
+
+	if err := validateTarget(stressTarget.Target); err != nil {
+		return err
 	}
 	return nil
 }

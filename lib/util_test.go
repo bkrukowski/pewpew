@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestValidateTargets(t *testing.T) {
+func TestValidateStressConfig(t *testing.T) {
 	cases := []struct {
 		s      StressConfig
 		hasErr bool
@@ -14,85 +14,99 @@ func TestValidateTargets(t *testing.T) {
 		{StressConfig{}, true},
 		//zero count
 		{StressConfig{
-			Targets: []Target{
+			StressTargets: []StressTarget{
 				{
-					URL:         DefaultURL,
 					Count:       0,
 					Concurrency: DefaultConcurrency,
-					Timeout:     DefaultTimeout,
-					Method:      DefaultMethod,
+					Target: Target{
+						URL:     DefaultURL,
+						Timeout: DefaultTimeout,
+						Method:  DefaultMethod,
+					},
 				},
 			},
 		}, true},
 		//zero concurrency
 		{StressConfig{
-			Targets: []Target{
+			StressTargets: []StressTarget{
 				{
-					URL:         DefaultURL,
 					Count:       DefaultCount,
 					Concurrency: 0,
-					Timeout:     DefaultTimeout,
-					Method:      DefaultMethod,
+					Target: Target{
+						URL:     DefaultURL,
+						Timeout: DefaultTimeout,
+						Method:  DefaultMethod,
+					},
 				},
 			},
 		}, true},
 		//concurrency > count
 		{StressConfig{
-			Targets: []Target{
+			StressTargets: []StressTarget{
 				{
-					URL:         DefaultURL,
 					Count:       10,
 					Concurrency: 20,
-					Timeout:     DefaultTimeout,
-					Method:      DefaultMethod,
+					Target: Target{
+						URL:     DefaultURL,
+						Timeout: DefaultTimeout,
+						Method:  DefaultMethod,
+					},
 				},
 			},
 		}, true},
 		//empty method
 		{StressConfig{
-			Targets: []Target{
+			StressTargets: []StressTarget{
 				{
-					URL:         DefaultURL,
 					Count:       DefaultCount,
 					Concurrency: DefaultConcurrency,
-					Timeout:     DefaultTimeout,
-					Method:      "",
+					Target: Target{
+						URL:     DefaultURL,
+						Timeout: DefaultTimeout,
+						Method:  "",
+					},
 				},
 			},
 		}, true},
 		//empty timeout string okay
 		{StressConfig{
-			Targets: []Target{
+			StressTargets: []StressTarget{
 				{
-					URL:         DefaultURL,
 					Count:       DefaultCount,
 					Concurrency: DefaultConcurrency,
-					Timeout:     "",
-					Method:      DefaultMethod,
+					Target: Target{
+						URL:     DefaultURL,
+						Timeout: "",
+						Method:  DefaultMethod,
+					},
 				},
 			},
 		}, false},
 		//invalid time string
 		{StressConfig{
-			Targets: []Target{
+			StressTargets: []StressTarget{
 				{
-					URL:         DefaultURL,
 					Count:       DefaultCount,
 					Concurrency: DefaultConcurrency,
-					Timeout:     "unparseable",
-					Method:      DefaultMethod,
+					Target: Target{
+						URL:     DefaultURL,
+						Timeout: "unparseable",
+						Method:  DefaultMethod,
+					},
 				},
 			},
 		}, true},
 		//timeout too short
 		{StressConfig{
-			Targets: []Target{
+			StressTargets: []StressTarget{
 				{
-					URL:         DefaultURL,
 					Count:       DefaultCount,
 					Concurrency: DefaultConcurrency,
-					Timeout:     "1ms",
-					Method:      DefaultMethod,
+					Target: Target{
+						URL:     DefaultURL,
+						Timeout: "1ms",
+						Method:  DefaultMethod,
+					},
 				},
 			},
 		}, true},
@@ -101,9 +115,9 @@ func TestValidateTargets(t *testing.T) {
 		{*NewStressConfig(), false},
 	}
 	for _, c := range cases {
-		err := validateTargets(c.s)
+		err := validateStressConfig(c.s)
 		if (err != nil) != c.hasErr {
-			t.Errorf("validateTargets(%+v) err: %t wanted %t", c.s, (err != nil), c.hasErr)
+			t.Errorf("validateStressConfig(%+v) err: %t wanted %t", c.s, (err != nil), c.hasErr)
 		}
 	}
 }
