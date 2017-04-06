@@ -48,7 +48,7 @@ type (
 	}
 )
 
-//Reasonable default values for an new StressConfig
+//Reasonable default values for a new StressConfig
 const (
 	DefaultURL         = "http://localhost"
 	DefaultCount       = 10
