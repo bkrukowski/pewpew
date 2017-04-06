@@ -192,3 +192,26 @@ func TestBuildRequest(t *testing.T) {
 		}
 	}
 }
+
+func TestCreateClient(t *testing.T) {
+	cases := []struct {
+		target Target
+	}{
+		{Target{}}, //empty
+		{Target{EnforceSSL: true}},
+		{Target{EnforceSSL: false}},
+		{Target{Compress: true}},
+		{Target{Compress: false}},
+		{Target{KeepAlive: true}},
+		{Target{KeepAlive: false}},
+		{Target{NoHTTP2: true}},
+		{Target{NoHTTP2: false}},
+		{Target{Timeout: ""}},
+		{Target{Timeout: "1s"}},
+		{Target{FollowRedirects: true}},
+		{Target{FollowRedirects: false}},
+	}
+	for _, c := range cases {
+		createClient(c.target)
+	}
+}

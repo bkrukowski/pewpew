@@ -1,15 +1,11 @@
 package pewpew
 
 import (
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"sync"
-	"time"
-
-	http2 "golang.org/x/net/http2"
 )
 
 //so concurrent workers don't interlace messages
@@ -20,11 +16,9 @@ type workerDone struct{}
 type (
 	//StressConfig is the top level struct that contains the configuration for a stress test
 	StressConfig struct {
-		Targets    []Target
-		Verbose    bool
-		Quiet      bool
-		NoHTTP2    bool
-		EnforceSSL bool
+		Targets []Target
+		Verbose bool
+		Quiet   bool
 
 		//global target settings
 
@@ -41,6 +35,8 @@ type (
 		Compress        bool
 		KeepAlive       bool
 		FollowRedirects bool
+		NoHTTP2         bool
+		EnforceSSL      bool
 	}
 	//Target is location to send the HTTP request.
 	Target struct {
@@ -66,6 +62,8 @@ type (
 		Compress        bool
 		KeepAlive       bool
 		FollowRedirects bool
+		NoHTTP2         bool
+		EnforceSSL      bool
 	}
 )
 
@@ -141,27 +139,7 @@ func RunStress(s StressConfig, w io.Writer) ([][]RequestStat, error) {
 			workerDoneChan := make(chan workerDone)   //workers use this to indicate they are done
 			requestStatChan := make(chan RequestStat) //workers communicate each requests' info
 
-			tr := &http.Transport{}
-			tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: !s.EnforceSSL}
-			tr.DisableCompression = !target.Compress
-			tr.DisableKeepAlives = !target.KeepAlive
-			if s.NoHTTP2 {
-				tr.TLSNextProto = make(map[string](func(string, *tls.Conn) http.RoundTripper))
-			} else {
-				http2.ConfigureTransport(tr)
-			}
-			var timeout time.Duration
-			if target.Timeout != "" {
-				timeout, _ = time.ParseDuration(target.Timeout)
-			} else {
-				timeout = time.Duration(0)
-			}
-			client := &http.Client{Timeout: timeout, Transport: tr}
-			if !target.FollowRedirects {
-				client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-					return http.ErrUseLastResponse
-				}
-			}
+			client := createClient(target)
 
 			//start up the workers
 			for i := 0; i < target.Concurrency; i++ {

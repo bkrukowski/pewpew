@@ -2,6 +2,7 @@ package pewpew
 
 import (
 	"bytes"
+	"crypto/tls"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	reggen "github.com/lucasjones/reggen"
+	http2 "golang.org/x/net/http2"
 )
 
 func validateTargets(s StressConfig) error {
@@ -156,4 +158,29 @@ func buildRequest(t Target) (http.Request, error) {
 		}
 	}
 	return *req, nil
+}
+
+func createClient(target Target) *http.Client {
+	tr := &http.Transport{}
+	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: !target.EnforceSSL}
+	tr.DisableCompression = !target.Compress
+	tr.DisableKeepAlives = !target.KeepAlive
+	if target.NoHTTP2 {
+		tr.TLSNextProto = make(map[string](func(string, *tls.Conn) http.RoundTripper))
+	} else {
+		http2.ConfigureTransport(tr)
+	}
+	var timeout time.Duration
+	if target.Timeout != "" {
+		timeout, _ = time.ParseDuration(target.Timeout)
+	} else {
+		timeout = time.Duration(0)
+	}
+	client := &http.Client{Timeout: timeout, Transport: tr}
+	if !target.FollowRedirects {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	}
+	return client
 }

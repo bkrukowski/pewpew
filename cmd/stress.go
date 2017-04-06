@@ -26,8 +26,6 @@ var stressCmd = &cobra.Command{
 		}
 
 		//global configs
-		stressCfg.NoHTTP2 = viper.GetBool("no-http2")
-		stressCfg.EnforceSSL = viper.GetBool("enforce-ssl")
 		stressCfg.Quiet = viper.GetBool("quiet")
 		stressCfg.Verbose = viper.GetBool("verbose")
 
@@ -59,6 +57,8 @@ var stressCmd = &cobra.Command{
 				stressCfg.Targets[i].Compress = viper.GetBool("compress")
 				stressCfg.Targets[i].KeepAlive = viper.GetBool("keepalive")
 				stressCfg.Targets[i].FollowRedirects = viper.GetBool("follow-redirects")
+				stressCfg.Targets[i].NoHTTP2 = viper.GetBool("no-http2")
+				stressCfg.Targets[i].EnforceSSL = viper.GetBool("enforce-ssl")
 			}
 		} else {
 			//set non-URL target settings
@@ -107,6 +107,12 @@ var stressCmd = &cobra.Command{
 				}
 				if _, set := targetMapVals["FollowRedirects"]; !set {
 					stressCfg.Targets[i].FollowRedirects = viper.GetBool("followredirects")
+				}
+				if _, set := targetMapVals["NoHTTP2"]; !set {
+					stressCfg.Targets[i].NoHTTP2 = viper.GetBool("no-http2")
+				}
+				if _, set := targetMapVals["EnforceSSL"]; !set {
+					stressCfg.Targets[i].EnforceSSL = viper.GetBool("enforce-ssl")
 				}
 			}
 		}
