@@ -194,9 +194,9 @@ var stressCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(stressCmd)
-	stressCmd.Flags().IntP("num", "n", 10, "Number of total requests to make.")
+	stressCmd.Flags().IntP("num", "n", pewpew.DefaultCount, "Number of total requests to make.")
 	viper.BindPFlag("count", stressCmd.Flags().Lookup("num"))
 
-	stressCmd.Flags().IntP("concurrent", "c", 1, "Number of concurrent requests to make.")
+	stressCmd.Flags().IntP("concurrent", "c", pewpew.DefaultConcurrency, "Number of concurrent requests to make.")
 	viper.BindPFlag("concurrency", stressCmd.Flags().Lookup("concurrent"))
 }

@@ -8,9 +8,11 @@ import (
 	"sync"
 )
 
+//TODO move to other file
 //so concurrent workers don't interlace messages
 var writeLock sync.Mutex
 
+//TODO move to other file
 type workerDone struct{}
 
 type (
@@ -48,17 +50,7 @@ type (
 	}
 )
 
-//Reasonable default values for a new StressConfig
-const (
-	DefaultURL         = "http://localhost"
-	DefaultCount       = 10
-	DefaultConcurrency = 1
-	DefaultTimeout     = "10s"
-	DefaultMethod      = "GET"
-	DefaultUserAgent   = "pewpew"
-)
-
-//NewStressConfig creates a new StressConfig object
+//NewStressConfig creates a new StressConfig
 //with package defaults
 func NewStressConfig() (s *StressConfig) {
 	s = &StressConfig{

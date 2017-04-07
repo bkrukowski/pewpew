@@ -5,6 +5,21 @@ import (
 	"time"
 )
 
+//Reasonable default values for a StressConfig or BenchConfig
+const (
+	DefaultURL         = "http://localhost"
+	DefaultTimeout     = "10s"
+	DefaultMethod      = "GET"
+	DefaultUserAgent   = "pewpew"
+	DefaultCount       = 10
+	DefaultConcurrency = 1
+	DefaultBeginRPS    = 10
+	DefaultEndRPS      = 50
+	DefaultInterval    = 10
+	DefaultDuration    = "10s"
+	DefaultCooldown    = "10s"
+)
+
 type (
 	//Target is location of where send the HTTP request and how to send it.
 	Target struct {
